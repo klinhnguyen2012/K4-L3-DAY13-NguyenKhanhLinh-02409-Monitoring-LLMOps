@@ -20,41 +20,29 @@ Ví dụ dưới đây minh họa mức độ cụ thể cần có. Học viên 
 - Mitigation tạm thời: dựa trên evidence thực tế để rollback prompt, khôi phục cấu hình liên quan, tắt practice scenario hoặc giảm tải khi demo.
 - Owner: `student-<MSSV>`
 
-## Alert 1
+## Alert 1 — HighLatencyP95
 
-- Tên:
-- Severity:
-- Duration:
-- Kênh thông báo: Slack
-- SLI/SLO liên quan:
-- Điều kiện và thời gian duy trì:
-- Ảnh hưởng tới người dùng:
-- Ba bước kiểm tra đầu tiên:
-- Mitigation tạm thời:
-- Owner:
+- Severity/duration: `warning`, `p95(response_sent.latency_ms) > 3000` trong `5m`.
+- Kênh/owner: Slack `#k4-l3b-alerts`; `student-02409`.
+- SLI/SLO: latency P95; fast-successful-request SLO ≤3000 ms.
+- Ảnh hưởng: người dùng đợi lâu hơn để nhận câu trả lời.
+- Kiểm tra: xác nhận P95/P99 và time range trên dashboard; lọc log lấy `correlation_id`; mở trace tương ứng và so sánh retrieval với generation.
+- Mitigation: rollback prompt/config gần nhất nếu trace chỉ ra regression; giảm tải demo nếu cần; lưu correlation ID và thời điểm trước thay đổi.
 
-## Alert 2
+## Alert 2 — ElevatedRequestErrorRate
 
-- Tên:
-- Severity:
-- Duration:
-- Kênh thông báo: Slack
-- SLI/SLO liên quan:
-- Điều kiện và thời gian duy trì:
-- Ảnh hưởng tới người dùng:
-- Ba bước kiểm tra đầu tiên:
-- Mitigation tạm thời:
-- Owner:
+- Severity/duration: `critical`, request-failed/request-received > `2%` trong `5m`.
+- Kênh/owner: Slack `#k4-l3b-alerts`; `student-02409`.
+- SLI/SLO: tỷ lệ request lỗi, với ngưỡng guardrail 2%.
+- Ảnh hưởng: một phần người dùng không nhận được câu trả lời.
+- Kiểm tra: xem error rate và breakdown theo loại lỗi; lọc `request_failed` trong log theo thời gian/feature; mở trace theo correlation ID để tìm span lỗi.
+- Mitigation: khôi phục dependency hoặc prompt/config gần nhất đã đổi; tắt practice incident nếu đang bật; xác nhận request thành công trước khi đóng alert.
 
-## Alert 3
+## Alert 3 — LowRetrievalSuccess
 
-- Tên:
-- Severity:
-- Duration:
-- Kênh thông báo: Slack
-- SLI/SLO liên quan:
-- Điều kiện và thời gian duy trì:
-- Ảnh hưởng tới người dùng:
-- Ba bước kiểm tra đầu tiên:
-- Mitigation tạm thời:
-- Owner:
+- Severity/duration: `warning`, retrieval tool success < `90%` trong `10m`.
+- Kênh/owner: Slack `#k4-l3b-alerts`; `student-02409`.
+- SLI/guardrail: tỷ lệ retrieval thành công, ngưỡng tối thiểu 90%.
+- Ảnh hưởng: câu trả lời có thể thiếu căn cứ hoặc không đầy đủ.
+- Kiểm tra: xem retrieval success và error breakdown; lấy một correlation ID có `tool_success=false`; kiểm tra retrieval span và context được trả về.
+- Mitigation: phục hồi cấu hình/index retrieval gần nhất; nếu chỉ xảy ra trong practice, tắt incident sau khi thu đủ evidence; chạy lại một truy vấn xác nhận.

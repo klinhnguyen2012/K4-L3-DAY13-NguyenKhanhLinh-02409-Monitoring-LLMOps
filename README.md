@@ -231,6 +231,10 @@ Không tự tạo, sửa, chia sẻ hoặc lấy `config/challenge.json` từ l�
 
 ## Kiểm tra trước khi nộp
 
+### Chạy dashboard local
+
+Trong terminal thứ hai tại thư mục repo, chạy `python scripts/dashboard.py`, rồi mở `http://127.0.0.1:8501`. Dashboard có sáu panel và tự đọc log mới mỗi 30 giây. Lưu ảnh runtime vào `submission/evidence/11-dashboard-overview.png`. Hướng dẫn đầy đủ: [`docs/DASHBOARD_SETUP.md`](docs/DASHBOARD_SETUP.md).
+
 ```bash
 python -m pytest -q
 python scripts/validate_logs.py

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="30">
+<title>K4-L3B LLMOps Runtime Dashboard</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--card:#151d31;--line:#27334d;--text:#e8eefb;--muted:#9eacc6;--cyan:#5eead4;--amber:#fbbf24;--red:#fb7185}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#17233c,var(--bg) 60%);color:var(--text);font:15px/1.5 system-ui,-apple-system,sans-serif}main{max-width:1200px;margin:auto;padding:34px 22px}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}h1{font-size:clamp(24px,4vw,36px);margin:0;letter-spacing:-.03em}.sub,.muted{color:var(--muted)}.pill{border:1px solid var(--line);border-radius:99px;padding:7px 12px;color:var(--cyan)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{background:linear-gradient(145deg,#18233a,#121a2b);border:1px solid var(--line);border-radius:16px;padding:20px;min-height:210px;box-shadow:0 12px 32px #0002}.card h2{font-size:17px;margin:0 0 4px}.unit{color:var(--muted);font-size:12px}.values{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.metric{background:#0c1426;border:1px solid #26324a;border-radius:10px;padding:10px 12px;min-width:110px}.metric b{display:block;font-size:21px;font-variant-numeric:tabular-nums}.metric span{font-size:11px;color:var(--muted)}.bar{height:12px;background:#0b1221;border-radius:9px;overflow:hidden;margin:14px 0 5px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#2dd4bf,#60a5fa);border-radius:9px;width:0;transition:width .4s}.threshold{font-size:12px;color:var(--muted);margin-top:12px}.ok{color:var(--cyan)}.breach{color:var(--red)}.foot{display:flex;justify-content:space-between;margin-top:16px;font-size:12px;color:var(--muted)}@media(max-width:700px){.grid{grid-template-columns:1fr}header{align-items:flex-start;gap:14px;flex-direction:column}}
+</style></head>
+<body><main>
+<header><div><h1>K4-L3B · Monitoring &amp; LLMOps</h1><div class="sub">Live runtime · log source: data/logs.jsonl · rolling 60 minutes</div></div><div class="pill" id="status">Connecting…</div></header>
+<section class="grid">
+<article class="card"><h2>Latency percentiles and TTFT</h2><div class="unit">milliseconds · threshold P95 ≤ 3000 ms</div><div class="values" id="latency"></div><div class="threshold" id="latency-state"></div></article>
+<article class="card"><h2>Request traffic</h2><div class="unit">requests / minute · 60-minute window</div><div class="values" id="traffic"></div><div class="bar"><i id="traffic-bar"></i></div><div class="threshold">Traffic threshold: ≥ 1 request/min average</div></article>
+<article class="card"><h2>Error rate and retrieval success</h2><div class="unit">percent · request failures and tool_success</div><div class="values" id="errors"></div><div class="threshold" id="error-breakdown"></div></article>
+<article class="card"><h2>Cost over time</h2><div class="unit">USD · sum in rolling window</div><div class="values" id="cost"></div><div class="threshold">Guardrail: total ≤ $2.50</div></article>
+<article class="card"><h2>Input and output tokens</h2><div class="unit">tokens · summed by field</div><div class="values" id="tokens"></div><div class="threshold">Dashboard contract threshold: total ≤ 50,000</div></article>
+<article class="card"><h2>Quality proxy</h2><div class="unit">mean quality_score · 0–1</div><div class="values" id="quality"></div><div class="threshold" id="quality-state"></div></article>
+</section><div class="foot"><span>Refresh: 30 seconds · each panel uses the dashboard YAML contract</span><span id="updated"></span></div>
+</main><script>
+const fmt=(n,d=0)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:d});
+const metric=(label,value)=>`<div class="metric"><b>${value}</b><span>${label}</span></div>`;
+async function refresh(){try{const r=await fetch('/api/summary?now='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();
+document.querySelector('#latency').innerHTML=metric('P50',fmt(d.latency.p50_ms)) + metric('P95',fmt(d.latency.p95_ms)) + metric('P99',fmt(d.latency.p99_ms)) + metric('TTFT P95',fmt(d.latency.ttft_p95_ms));
+document.querySelector('#latency-state').innerHTML=`P95 threshold: 3000 ms · <span class="${d.latency.p95_ms<=3000?'ok':'breach'}">${d.latency.p95_ms<=3000?'within SLO':'threshold breached'}</span>`;
+document.querySelector('#traffic').innerHTML=metric('Requests',fmt(d.traffic.requests))+metric('Average / min',fmt(d.traffic.requests_per_minute,2));document.querySelector('#traffic-bar').style.width=Math.min(100,d.traffic.requests_per_minute*10)+'%';
+document.querySelector('#errors').innerHTML=metric('Error rate',fmt(d.errors.error_rate_pct,2)+'%')+metric('Retrieval success',fmt(d.errors.retrieval_success_pct,2)+'%')+metric('Failed',fmt(d.errors.failed));document.querySelector('#error-breakdown').textContent='Error breakdown: '+(Object.entries(d.errors.breakdown).map(([k,v])=>`${k}: ${v}`).join(' · ')||'none');
+document.querySelector('#cost').innerHTML=metric('Total', '$'+fmt(d.cost.total_usd,6))+metric('Responses',fmt(d.quality.samples));document.querySelector('#tokens').innerHTML=metric('Input',fmt(d.tokens.input))+metric('Output',fmt(d.tokens.output))+metric('Combined',fmt(d.tokens.input+d.tokens.output));document.querySelector('#quality').innerHTML=metric('Mean score',fmt(d.quality.mean,4))+metric('Samples',fmt(d.quality.samples));document.querySelector('#quality-state').innerHTML=`Quality threshold: ≥ 0.75 · <span class="${d.quality.mean>=.75?'ok':'breach'}">${d.quality.mean>=.75?'within guardrail':'below guardrail'}</span>`;
+document.querySelector('#status').textContent='LIVE · '+d.records+' log records';document.querySelector('#updated').textContent='Updated '+new Date(d.generated_at).toLocaleString();}catch(e){document.querySelector('#status').textContent='API unavailable';document.querySelector('#updated').textContent=String(e)}}refresh();setInterval(refresh,30000);
+</script></body></html>

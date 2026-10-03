@@ -23,6 +23,21 @@ Nếu Langfuse không khả dụng, app dùng template local và trace metadata 
 
 ## Thao tác trên Langfuse UI
 
+Có thể tạo bộ prompt lab bằng script (script đọc `.env` cục bộ nhưng không in key hoặc prompt text):
+
+```bash
+python scripts/setup_langfuse_prompts.py
+```
+
+Nó tạo v1 `baseline` + `production` và v2 `candidate`; nếu prompt đã có version thì sẽ không tạo bản trùng. Để chuyển nhãn và xác nhận kết quả:
+
+```bash
+python scripts/set_prompt_production.py --version 2
+python scripts/set_prompt_production.py --version 1
+```
+
+Sau mỗi lần đổi label, gửi request mới và kiểm tra `prompt_version` trong generation observation. SDK dùng cache/stale-while-revalidate; có thể cần hai request sau khi cache hết hạn rồi mới thấy label mới trong trace.
+
 Tên menu/nút trên Langfuse có thể thay đổi nhẹ theo phiên bản, nhưng luồng thao tác cần giữ như sau:
 
 1. Mở đúng project cá nhân `day13-k4-l3b-<MSSV>`.

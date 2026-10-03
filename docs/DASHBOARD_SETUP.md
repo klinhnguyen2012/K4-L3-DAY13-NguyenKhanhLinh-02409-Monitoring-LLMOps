@@ -35,6 +35,14 @@ Validator kiểm tra cấu trúc contract; nó không thể chứng minh biểu 
 
 ## Cách kiểm tra runtime
 
+Dashboard runtime trong repo dùng server Python standard library, không cần cài thêm package. Mở terminal tại thư mục gốc repo và chạy:
+
+```bash
+python scripts/dashboard.py
+```
+
+Mở `http://127.0.0.1:8501`. Dashboard đọc mới `data/logs.jsonl` qua endpoint nội bộ, có sáu panel, rolling window 60 phút và tự cập nhật mỗi 30 giây. Dừng bằng `Ctrl-C`. Nếu virtual environment chưa được bật, dùng `.venv/bin/python scripts/dashboard.py` trên macOS/Linux hoặc `.venv\\Scripts\\python.exe scripts/dashboard.py` trên Windows.
+
 1. Lưu ảnh baseline và giá trị P95/error/cost hiện tại.
 2. Bật một incident practice, ví dụ `python scripts/inject_incident.py --scenario <practice_scenario>`.
 3. Chạy lại load test với cùng input và concurrency.
