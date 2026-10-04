@@ -1,11 +1,11 @@
 Command: .venv/bin/python scripts/validate_logs.py
-Run date: 2026-10-03
+Run date: 2026-10-04
 Output:
 --- Lab Verification Results ---
-Total log records analyzed: 119
+Total log records analyzed: 34
 Records with missing required fields: 0
 Records with missing enrichment (context): 0
-Unique correlation IDs found: 52
+Unique correlation IDs found: 17
 Potential PII leaks detected: 0
 
 --- Grading Scorecard (Estimates) ---

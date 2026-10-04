@@ -19,9 +19,9 @@ Các file evidence `01`–`14` hiện đã có. Ảnh Langfuse 06–10 và 14 đ
 
 | Evidence | Đường dẫn / trạng thái |
 |---|---|
-| Pytest cuối | [01-pytest.txt](evidence/01-pytest.txt) — chạy 2026-10-03; 35 passed |
-| Log validator | [02-log-validator.txt](evidence/02-log-validator.txt) — chạy 2026-10-03; 100/100 |
-| Dashboard validator | [03-dashboard-validator.txt](evidence/03-dashboard-validator.txt) — chạy 2026-10-03; 6/6 |
+| Pytest cuối | [01-pytest.txt](evidence/01-pytest.txt) — chạy 2026-10-04; 35 passed |
+| Log validator | [02-log-validator.txt](evidence/02-log-validator.txt) — chạy 2026-10-04; 100/100 |
+| Dashboard validator | [03-dashboard-validator.txt](evidence/03-dashboard-validator.txt) — chạy 2026-10-04; 6/6 |
 | Structured log | [04-structured-log.png](evidence/04-structured-log.png) — có ảnh; rà lại sau khi chốt code |
 | PII redaction | [05-pii-redaction.png](evidence/05-pii-redaction.png) — có ảnh test dữ liệu giả đã scrub |
 | Trace list | [06-trace-list.png](evidence/06-trace-list.png) — project cá nhân và traces tự tạo |
@@ -36,15 +36,15 @@ Các file evidence `01`–`14` hiện đã có. Ảnh Langfuse 06–10 và 14 đ
 
 ## 3. Kết quả kỹ thuật
 
-Tests và dashboard validator đã chạy lại ngày 2026-10-04 trên commit sửa CP2 `b8d2b7e`: 35 tests pass, dashboard 6/6. Các số liệu runtime trong ảnh evidence 11 là snapshot cũ gồm 19 request/53 log records; dashboard dùng rolling window 60 phút.
+Tests và validators đã chạy lại ngày 2026-10-04 trên bản sửa hiện tại: 35 tests pass, dashboard 6/6, log validator 100/100 với 34 records và 17 correlation IDs. Các số liệu runtime trong ảnh evidence 11 là snapshot cũ gồm 19 request/53 log records; dashboard dùng rolling window 60 phút.
 
 | Nội dung | Baseline | Kết quả hiện tại | Nhận xét |
 |---|---|---|---|
-| `validate_logs.py` | 30/100; 21 records; thiếu required fields/enrichment; 0 correlation ID; 0 PII leak | 100/100; 119 records; 52 correlation IDs; 0 field/enrichment thiếu; 0 PII leak | Chạy 2026-10-03; output tại `evidence/02-log-validator.txt`. |
-| `validate_dashboard.py` | Chưa ghi baseline | 6/6 panel | Chạy 2026-10-03; output tại `evidence/03-dashboard-validator.txt`. |
-| `pytest` | Chưa ghi baseline | 35 passed | Chạy 2026-10-03; output tại `evidence/01-pytest.txt`. |
+| `validate_logs.py` | 30/100; 21 records; thiếu required fields/enrichment; 0 correlation ID; 0 PII leak | 100/100; 34 records; 17 correlation IDs; 0 field/enrichment thiếu; 0 PII leak | Chạy 2026-10-04; output tại `evidence/02-log-validator.txt`. |
+| `validate_dashboard.py` | Chưa ghi baseline | 6/6 panel | Chạy 2026-10-04; output tại `evidence/03-dashboard-validator.txt`. |
+| `pytest` | Chưa ghi baseline | 35 passed | Chạy 2026-10-04; output tại `evidence/01-pytest.txt`. |
 | Số traces hợp lệ | Chưa ghi | 5 challenge traces + 10 baseline traces đã truy vấn qua API v2 | Có span tree và correlation metadata. |
-| Số PII leak | Chưa ghi | 0 trong 119 log records đã kiểm tra | Log validator không phát hiện PII theo các pattern được kiểm tra. |
+| Số PII leak | Chưa ghi | 0 trong 34 log records mới nhất đã kiểm tra | Log validator không phát hiện PII theo các pattern được kiểm tra. |
 | Latency P95 / TTFT P95 | Chưa ghi | Evidence 11 snapshot: P95 3492 ms / TTFT P95 55 ms; P99 3492 ms, 19 response | Rolling 60 phút trên workload lab; P95 vượt ngưỡng 3000 ms, không đại diện production traffic. |
 | Retrieval success rate | Chưa ghi | Ảnh 11 ghi 100% tại thời điểm chụp | Sau commit `b8d2b7e`, runtime tính trên mọi log record có `tool_success` dạng boolean, gồm `response_sent` và `request_failed`; ảnh 11 chưa được chụp lại. |
 
@@ -68,7 +68,7 @@ Tests và dashboard validator đã chạy lại ngày 2026-10-04 trên commit s�
 
 ## 6. Dashboard, SLO và alerts
 
-- **Dashboard và sáu panel:** Dashboard runtime nằm ở `dashboard/index.html`, chạy qua `scripts/dashboard.py`, đọc log thật với rolling window 60 phút và refresh 30 giây. Retrieval success dùng mọi record có `tool_success` dạng boolean, kể cả request lỗi. Validator 6/6; ảnh runtime trước bản sửa đã lưu tại `evidence/11-dashboard-overview.png`.
+- **Dashboard và sáu panel:** Dashboard runtime nằm ở `dashboard/index.html`, chạy qua `scripts/dashboard.py`, đọc log thật với rolling window 60 phút và refresh 30 giây. Mỗi panel hiển thị giá trị thực cùng vạch threshold trên một thang đo chung; panel Errors có thêm vạch retrieval success. Retrieval success dùng mọi record có `tool_success` dạng boolean, kể cả request lỗi. Validator 6/6; ảnh runtime trước bản sửa đã lưu tại `evidence/11-dashboard-overview.png`.
 - **SLO và lý do chọn:** `fast_successful_requests`: 99.5% request thành công với latency không quá 3000 ms trong cửa sổ 28 ngày, theo `config/slo.yaml`.
 - **Cách tính error budget:** 100% − 99.5% = 0.5%. Với 10,000 requests trong cửa sổ SLO, ngân sách tối đa là 50 request không đạt.
 - **Ba alert và runbook tương ứng:** `HighLatencyP95` (>3000 ms/5m, warning), `ElevatedRequestErrorRate` (>2%/5m, critical), `LowRetrievalSuccess` (<90%/10m, warning); Slack `#k4-l3b-alerts`, owner và runbook đã cấu hình. Headings `## Alert 1/2/3` khớp anchors trong YAML; test kiểm tra cả cấu hình và headings đích.
