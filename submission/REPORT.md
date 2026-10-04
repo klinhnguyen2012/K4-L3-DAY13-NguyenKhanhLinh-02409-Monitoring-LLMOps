@@ -1,6 +1,6 @@
 # Báo cáo cá nhân — K4-L3B Day 13 Monitoring & LLMOps
 
-> Cập nhật CP2/CP3 ngày 2026-10-03. Các kết quả và ảnh phản ánh worktree hiện tại; cần chạy lại validators/tests và cập nhật commit SHA sau khi chốt toàn bộ thay đổi.
+> Cập nhật ngày 2026-10-04. Bản sửa CP2 đã được kiểm tra trên commit `b8d2b7ec95eab50a267c91a5146984ee89b28372`; sau khi commit báo cáo, lấy SHA cuối bằng `git rev-parse HEAD` để nộp cùng URL repository.
 
 ## 1. Thông tin học viên
 
@@ -8,9 +8,10 @@
 - **MSSV:** 02409
 - **Lớp:** K4-L3B
 - **Repository URL:** https://github.com/klinhnguyen2012/K4-L3-DAY13-NguyenKhanhLinh-02409-Monitoring-LLMOps.git
-- **Commit SHA cuối:** Chưa chốt; cập nhật sau khi hoàn thiện và commit bản nộp.
+- **Commit sửa CP2 đã kiểm tra:** `b8d2b7ec95eab50a267c91a5146984ee89b28372`.
+- **Commit SHA cuối để nộp:** lấy bằng `git rev-parse HEAD` sau khi commit báo cáo/evidence và ghi trên LMS/Codelabs. Không thể ghi chính SHA của commit chứa báo cáo vào nội dung báo cáo đó.
 - **Challenge ID:** `day13-k4-l3b-monitoring-llmops-v1`
-- **Tên project Langfuse cá nhân:** `day13-k3-l3b-02409` (theo ảnh giao diện Langfuse).
+- **Tên project Langfuse cá nhân:** `day13-k3-l3b-02409` (theo ảnh giao diện Langfuse). Tên này chưa khớp mẫu `day13-k4-l3b-02409` trong README; cần xác nhận hoặc đổi tên project thực tế trước khi nộp, rồi cập nhật mục này theo tên hiển thị thật.
 
 ## 2. Evidence index
 
@@ -35,7 +36,7 @@ Các file evidence `01`–`14` hiện đã có. Ghi chú rà soát: ảnh 08 ch�
 
 ## 3. Kết quả kỹ thuật
 
-Các kết quả dưới đây đo trên worktree hiện tại, chưa phải xác nhận trên commit cuối. Metric của dashboard là rolling 60 phút; ảnh evidence 11 ghi nhận snapshot 19 request/53 log records.
+Tests và dashboard validator đã chạy lại ngày 2026-10-04 trên commit sửa CP2 `b8d2b7e`: 35 tests pass, dashboard 6/6. Các số liệu runtime trong ảnh evidence 11 là snapshot cũ gồm 19 request/53 log records; dashboard dùng rolling window 60 phút.
 
 | Nội dung | Baseline | Kết quả hiện tại | Nhận xét |
 |---|---|---|---|
@@ -45,7 +46,7 @@ Các kết quả dưới đây đo trên worktree hiện tại, chưa phải xá
 | Số traces hợp lệ | Chưa ghi | 5 challenge traces + 10 baseline traces đã truy vấn qua API v2 | Có span tree và correlation metadata. |
 | Số PII leak | Chưa ghi | 0 trong 119 log records đã kiểm tra | Log validator không phát hiện PII theo các pattern được kiểm tra. |
 | Latency P95 / TTFT P95 | Chưa ghi | Evidence 11 snapshot: P95 3492 ms / TTFT P95 55 ms; P99 3492 ms, 19 response | Rolling 60 phút trên workload lab; P95 vượt ngưỡng 3000 ms, không đại diện production traffic. |
-| Retrieval success rate | Chưa ghi | 100% trong 29 request response hiện có của rolling window | Dựa trên `tool_success` trong log hiện tại. |
+| Retrieval success rate | Chưa ghi | Ảnh 11 ghi 100% tại thời điểm chụp | Sau commit `b8d2b7e`, runtime tính trên mọi log record có `tool_success` dạng boolean, gồm `response_sent` và `request_failed`; ảnh 11 chưa được chụp lại. |
 
 ## 4. Logging và PII
 
@@ -67,10 +68,10 @@ Các kết quả dưới đây đo trên worktree hiện tại, chưa phải xá
 
 ## 6. Dashboard, SLO và alerts
 
-- **Dashboard và sáu panel:** Dashboard runtime nằm ở `dashboard/index.html`, chạy qua `scripts/dashboard.py`, đọc log thật với rolling window 60 phút và refresh 30 giây. Validator 6/6; ảnh runtime đã lưu tại `evidence/11-dashboard-overview.png`.
+- **Dashboard và sáu panel:** Dashboard runtime nằm ở `dashboard/index.html`, chạy qua `scripts/dashboard.py`, đọc log thật với rolling window 60 phút và refresh 30 giây. Retrieval success dùng mọi record có `tool_success` dạng boolean, kể cả request lỗi. Validator 6/6; ảnh runtime trước bản sửa đã lưu tại `evidence/11-dashboard-overview.png`.
 - **SLO và lý do chọn:** `fast_successful_requests`: 99.5% request thành công với latency không quá 3000 ms trong cửa sổ 28 ngày, theo `config/slo.yaml`.
 - **Cách tính error budget:** 100% − 99.5% = 0.5%. Với 10,000 requests trong cửa sổ SLO, ngân sách tối đa là 50 request không đạt.
-- **Ba alert và runbook tương ứng:** `HighLatencyP95` (>3000 ms/5m, warning), `ElevatedRequestErrorRate` (>2%/5m, critical), `LowRetrievalSuccess` (<90%/10m, warning); Slack `#k4-l3b-alerts`, owner và runbook đã cấu hình. Test ở `tests/test_alert_config.py` kiểm tra TODO.
+- **Ba alert và runbook tương ứng:** `HighLatencyP95` (>3000 ms/5m, warning), `ElevatedRequestErrorRate` (>2%/5m, critical), `LowRetrievalSuccess` (<90%/10m, warning); Slack `#k4-l3b-alerts`, owner và runbook đã cấu hình. Headings `## Alert 1/2/3` khớp anchors trong YAML; test kiểm tra cả cấu hình và headings đích.
 
 ## 7. Điều tra challenge
 
@@ -91,11 +92,11 @@ Các kết quả dưới đây đo trên worktree hiện tại, chưa phải xá
 - **Cách hiểu luồng Metrics → Logs → Traces:** Metrics khoanh vùng triệu chứng/thời gian; logs chọn request bằng correlation ID; trace cho biết span cụ thể chậm hoặc lỗi; kết luận root cause cần khớp cả ba nguồn.
 - **Vai trò của prompt version, token/cost, SLO hoặc rollback trong vận hành LLM:** Version/label giúp xác định prompt của request và rollback khi có regression; token/cost cho thấy mức tiêu thụ; SLO và error budget định lượng mức chất lượng cho phép.
 - **Điều quan trọng nhất đã học:** Một metric như P95 vượt SLO chỉ cho biết request đang chậm, chưa chỉ ra nguyên nhân. Dùng `correlation_id` để nối metric với đúng log và trace giúp xác định retrieval là span chiếm phần lớn độ trễ (~2.5 giây), thay vì quy lỗi cho generation hoặc prompt khi chưa có bằng chứng.
-- **Hạn chế hoặc phần chưa hoàn thành:** Crop/ẩn `public_key` khỏi ảnh 14; cân nhắc cập nhật ảnh 08 để correlation ID hiện trực tiếp trong cùng ảnh metadata; cập nhật commit SHA sau commit nộp. Dashboard/metrics chỉ dựa trên workload lab, không phải production traffic.
+- **Hạn chế hoặc phần chưa hoàn thành:** Xác nhận/đổi tên project Langfuse theo mẫu K4; crop/ẩn `public_key` khỏi ảnh 14; cân nhắc cập nhật ảnh 08 để correlation ID hiện trực tiếp trong cùng ảnh metadata. Ảnh dashboard 11 được chụp trước bản sửa retrieval success. SHA cuối cần lấy sau commit báo cáo và điền trên LMS/Codelabs. Dashboard/metrics chỉ dựa trên workload lab, không phải production traffic.
 
 ## 9. Checklist trước khi nộp
 
-- [ ] Kết quả và evidence được tạo/kiểm tra trên commit SHA cuối; cập nhật SHA sau commit cuối.
+- [ ] Kết quả và evidence được tạo/kiểm tra trên commit SHA cuối; chạy lại sau khi commit báo cáo và ghi SHA đó trên LMS/Codelabs.
 - [x] Chạy lại tests/validators; output mới của 01–03 đã lưu dạng `.txt`; rà soát 04–05 trước khi nộp.
 - [x] Lưu ảnh trace list, waterfall, metadata, prompt versions và trạng thái rollback thành 06–10; trace IDs version trước/sau được ghi ở mục 5.
 - [ ] Rà soát 08 để thêm correlation ID nếu có thể; ảnh 14 hiện nối correlation ID với trace.
@@ -103,5 +104,5 @@ Các kết quả dưới đây đo trên worktree hiện tại, chưa phải xá
 - [x] Incident evidence nối metric → log → trace: challenge aggregate (12), `req-98640d6a` trong log (13), cùng correlation ID trong trace (14).
 - [ ] Ảnh Langfuse project cá nhân không lộ key/secret hoặc nội dung nhạy cảm.
 - [ ] Repository cài đặt và chạy lại được theo README.
-- [ ] Không có secret, API key, PII thô hoặc evidence của người khác/lớp khác. `config/challenge.json` đã được bỏ khỏi Git index (thay đổi removal đang staged); file local được giữ lại và `.gitignore` đang bỏ qua file này. Giữ staged removal trong commit nộp.
+- [ ] Không có secret, API key, PII thô hoặc evidence của người khác/lớp khác. `config/challenge.json` đã được bỏ khỏi Git index và `.gitignore` đang bỏ qua file local này; không còn staged removal.
 - [ ] URL repo và commit SHA cuối đã được nộp trên LMS/Codelabs.
