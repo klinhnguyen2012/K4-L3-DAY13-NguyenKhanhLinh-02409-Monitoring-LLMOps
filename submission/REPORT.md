@@ -75,9 +75,9 @@ Tests và dashboard validator đã chạy lại ngày 2026-10-04 trên commit s�
 
 ## 7. Điều tra challenge
 
-- **Challenge ID:** `day13-k4-l3b-monitoring-llmops-v1`
-- **Khoảng thời gian điều tra:** 2026-10-02 khoảng 09:04:38–09:04:53 UTC (16:04:38–16:04:53 giờ Việt Nam); chạy 5 request challenge, sau đó tắt incident. Evidence 12 tổng hợp đúng năm correlation IDs challenge.
-- **Triệu chứng từ metrics:** P50 2936 ms, P95/P99 3492 ms; TTFT P95 55 ms; 5 request, 0 lỗi; cost tổng $0.0086; retrieval success 100%. Một request vượt 3000 ms.
+- **Challenge ID và nguồn:** `day13-k4-l3b-monitoring-llmops-v1` từ commit Lab Coach `0a7eadbeb938ccb265aa2bf3786bd126ce316943`. Git blob của `config/challenge.json` local khớp chính xác file trong commit đó; file local được Git ignore và không có trong index.
+- **Khoảng thời gian điều tra:** baseline 10 response lúc 08:24:09–08:24:13 UTC; challenge 5 response lúc 09:04:41–09:04:53 UTC ngày 2026-10-02 (16:04 giờ Việt Nam). Sau workload challenge đã tắt incident. Evidence 12 tổng hợp đúng năm correlation IDs challenge; khoảng thời gian được đối chiếu qua `ts` của log.
+- **Triệu chứng từ metrics so với baseline:** baseline P50 413 ms, P95/P99 934 ms, TTFT P95 55 ms (10 response, retrieval thành công 10/10). Challenge P50 2936 ms, P95/P99 3492 ms, TTFT P95 vẫn 55 ms (5 response, 0 lỗi, retrieval thành công 5/5, tổng cost $0.00861). P95 tăng 2558 ms, khoảng 3.74 lần; một challenge request vượt ngưỡng 3000 ms. Các latency này lấy từ `response_sent.latency_ms`, không dùng thời gian phía client của load test.
 - **Log và correlation ID:** [Evidence 13](evidence/13-incident-log.png) ghi `req-98640d6a`; event `response_sent`, latency 3492 ms, retrieval thành công, feature `monitoring`.
 - **Trace và span:** [Evidence 14](evidence/14-incident-trace.png), trace `0648d07ce148f5812676ff7003a0bf2b`; metadata hiển thị cùng `correlation_id=req-98640d6a`. Retrieval span mất 2.500 s, generation khoảng 0.161 s. Các trace challenge còn lại cũng có retrieval khoảng 2.50 s và generation khoảng 0.155–0.157 s.
 - **Root cause:** độ trễ retrieval/RAG chiếm khoảng 2.5 giây trong request, trong khi generation chỉ khoảng 0.16 giây; điều này giải thích P95 vượt ngưỡng 3000 ms. Kết luận khớp metrics, JSONL và span durations.
