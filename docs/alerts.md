@@ -20,7 +20,9 @@ Ví dụ dưới đây minh họa mức độ cụ thể cần có. Học viên 
 - Mitigation tạm thời: dựa trên evidence thực tế để rollback prompt, khôi phục cấu hình liên quan, tắt practice scenario hoặc giảm tải khi demo.
 - Owner: `student-<MSSV>`
 
-## Alert 1 — HighLatencyP95
+## Alert 1
+
+**HighLatencyP95**
 
 - Severity/duration: `warning`, `p95(response_sent.latency_ms) > 3000` trong `5m`.
 - Kênh/owner: Slack `#k4-l3b-alerts`; `student-02409`.
@@ -29,7 +31,9 @@ Ví dụ dưới đây minh họa mức độ cụ thể cần có. Học viên 
 - Kiểm tra: xác nhận P95/P99 và time range trên dashboard; lọc log lấy `correlation_id`; mở trace tương ứng và so sánh retrieval với generation.
 - Mitigation: rollback prompt/config gần nhất nếu trace chỉ ra regression; giảm tải demo nếu cần; lưu correlation ID và thời điểm trước thay đổi.
 
-## Alert 2 — ElevatedRequestErrorRate
+## Alert 2
+
+**ElevatedRequestErrorRate**
 
 - Severity/duration: `critical`, request-failed/request-received > `2%` trong `5m`.
 - Kênh/owner: Slack `#k4-l3b-alerts`; `student-02409`.
@@ -38,7 +42,9 @@ Ví dụ dưới đây minh họa mức độ cụ thể cần có. Học viên 
 - Kiểm tra: xem error rate và breakdown theo loại lỗi; lọc `request_failed` trong log theo thời gian/feature; mở trace theo correlation ID để tìm span lỗi.
 - Mitigation: khôi phục dependency hoặc prompt/config gần nhất đã đổi; tắt practice incident nếu đang bật; xác nhận request thành công trước khi đóng alert.
 
-## Alert 3 — LowRetrievalSuccess
+## Alert 3
+
+**LowRetrievalSuccess**
 
 - Severity/duration: `warning`, retrieval tool success < `90%` trong `10m`.
 - Kênh/owner: Slack `#k4-l3b-alerts`; `student-02409`.

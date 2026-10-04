@@ -22,4 +22,7 @@ def test_three_symptom_alerts_are_fully_configured_and_have_runbooks():
         assert alert["channel"] == "#k4-l3b-alerts"
         assert alert["owner"]
         assert "TODO" not in str(alert.values())
-        assert (ROOT / alert["runbook"].split("#", 1)[0]).exists()
+        runbook_path, anchor = alert["runbook"].split("#", 1)
+        runbook = ROOT / runbook_path
+        assert runbook.exists()
+        assert f"## {anchor.replace('-', ' ').title()}" in runbook.read_text(encoding="utf-8").splitlines()

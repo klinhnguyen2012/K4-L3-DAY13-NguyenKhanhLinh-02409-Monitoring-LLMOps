@@ -48,7 +48,7 @@ def summarize_records(
     failures = [r for r in recent if r.get("event") == "request_failed"]
     latencies = [float(r["latency_ms"]) for r in responses if isinstance(r.get("latency_ms"), (int, float))]
     ttfts = [float(r["ttft_ms"]) for r in responses if isinstance(r.get("ttft_ms"), (int, float))]
-    tool_results = [r["tool_success"] for r in responses if isinstance(r.get("tool_success"), bool)]
+    tool_results = [r["tool_success"] for r in recent if isinstance(r.get("tool_success"), bool)]
     costs = [float(r["cost_usd"]) for r in responses if isinstance(r.get("cost_usd"), (int, float))]
     quality = [float(r["quality_score"]) for r in responses if isinstance(r.get("quality_score"), (int, float))]
     error_breakdown: dict[str, int] = {}
