@@ -11,11 +11,11 @@
 - **Commit sửa CP2 đã kiểm tra:** `b8d2b7ec95eab50a267c91a5146984ee89b28372`.
 - **Commit SHA cuối để nộp:** lấy bằng `git rev-parse HEAD` sau khi commit báo cáo/evidence và ghi trên LMS/Codelabs. Không thể ghi chính SHA của commit chứa báo cáo vào nội dung báo cáo đó.
 - **Challenge ID:** `day13-k4-l3b-monitoring-llmops-v1`
-- **Tên project Langfuse cá nhân:** `day13-k3-l3b-02409` (theo ảnh giao diện Langfuse). Tên này chưa khớp mẫu `day13-k4-l3b-02409` trong README; cần xác nhận hoặc đổi tên project thực tế trước khi nộp, rồi cập nhật mục này theo tên hiển thị thật.
+- **Tên project Langfuse cá nhân:** `day13-k4-l3b-02409` (đã đổi trong Project Settings và xác nhận tên mới trên Langfuse ngày 2026-10-04). Project ID giữ nguyên nên traces và prompt versions vẫn thuộc cùng project.
 
 ## 2. Evidence index
 
-Các file evidence `01`–`14` hiện đã có. Ghi chú rà soát: ảnh 08 chưa thấy `correlation_id`; ảnh 12 là số liệu aggregate challenge, còn thời gian challenge được ghi ở mục 7; ảnh 14 thấy correlation ID nhưng lộ thuộc tính `scope.attributes.public_key` phía dưới — cần crop/ẩn phần đó trước khi nộp.
+Các file evidence `01`–`14` hiện đã có. Ảnh Langfuse 06–10 và 14 được chụp trước khi đổi tên project nên vẫn hiện `day13-k3-l3b-02409`; project ID và dữ liệu trace/prompt không đổi. Ghi chú rà soát: ảnh 08 chưa thấy `correlation_id`; ảnh 12 là số liệu aggregate challenge, còn thời gian challenge được ghi ở mục 7; ảnh 14 thấy correlation ID nhưng lộ thuộc tính `scope.attributes.public_key` phía dưới — cần crop/ẩn phần đó trước khi nộp.
 
 | Evidence | Đường dẫn / trạng thái |
 |---|---|
@@ -92,7 +92,7 @@ Tests và dashboard validator đã chạy lại ngày 2026-10-04 trên commit s�
 - **Cách hiểu luồng Metrics → Logs → Traces:** Metrics khoanh vùng triệu chứng/thời gian; logs chọn request bằng correlation ID; trace cho biết span cụ thể chậm hoặc lỗi; kết luận root cause cần khớp cả ba nguồn.
 - **Vai trò của prompt version, token/cost, SLO hoặc rollback trong vận hành LLM:** Version/label giúp xác định prompt của request và rollback khi có regression; token/cost cho thấy mức tiêu thụ; SLO và error budget định lượng mức chất lượng cho phép.
 - **Điều quan trọng nhất đã học:** Một metric như P95 vượt SLO chỉ cho biết request đang chậm, chưa chỉ ra nguyên nhân. Dùng `correlation_id` để nối metric với đúng log và trace giúp xác định retrieval là span chiếm phần lớn độ trễ (~2.5 giây), thay vì quy lỗi cho generation hoặc prompt khi chưa có bằng chứng.
-- **Hạn chế hoặc phần chưa hoàn thành:** Xác nhận/đổi tên project Langfuse theo mẫu K4; crop/ẩn `public_key` khỏi ảnh 14; cân nhắc cập nhật ảnh 08 để correlation ID hiện trực tiếp trong cùng ảnh metadata. Ảnh dashboard 11 được chụp trước bản sửa retrieval success. SHA cuối cần lấy sau commit báo cáo và điền trên LMS/Codelabs. Dashboard/metrics chỉ dựa trên workload lab, không phải production traffic.
+- **Hạn chế hoặc phần chưa hoàn thành:** Ảnh Langfuse 06–10 và 14 vẫn hiện tên cũ trước khi project được đổi sang mẫu K4; crop/ẩn `public_key` khỏi ảnh 14; cân nhắc cập nhật ảnh 08 để correlation ID hiện trực tiếp trong cùng ảnh metadata. Ảnh dashboard 11 được chụp trước bản sửa retrieval success. SHA cuối cần lấy sau commit báo cáo và điền trên LMS/Codelabs. Dashboard/metrics chỉ dựa trên workload lab, không phải production traffic.
 
 ## 9. Checklist trước khi nộp
 
