@@ -76,6 +76,9 @@ Tests và dashboard validator đã chạy lại ngày 2026-10-04 trên commit s�
 ## 7. Điều tra challenge
 
 - **Challenge ID và nguồn:** `day13-k4-l3b-monitoring-llmops-v1` từ commit Lab Coach `0a7eadbeb938ccb265aa2bf3786bd126ce316943`. Git blob của `config/challenge.json` local khớp chính xác file trong commit đó; file local được Git ignore và không có trong index.
+
+### Lượt chính có evidence 12–14 (2026-10-02)
+
 - **Khoảng thời gian điều tra:** baseline 10 response lúc 08:24:09–08:24:13 UTC; challenge 5 response lúc 09:04:41–09:04:53 UTC ngày 2026-10-02 (16:04 giờ Việt Nam). Sau workload challenge đã tắt incident. Evidence 12 tổng hợp đúng năm correlation IDs challenge; khoảng thời gian được đối chiếu qua `ts` của log.
 - **Triệu chứng từ metrics so với baseline:** baseline P50 413 ms, P95/P99 934 ms, TTFT P95 55 ms (10 response, retrieval thành công 10/10). Challenge P50 2936 ms, P95/P99 3492 ms, TTFT P95 vẫn 55 ms (5 response, 0 lỗi, retrieval thành công 5/5, tổng cost $0.00861). P95 tăng 2558 ms, khoảng 3.74 lần; một challenge request vượt ngưỡng 3000 ms. Các latency này lấy từ `response_sent.latency_ms`, không dùng thời gian phía client của load test.
 - **Log và correlation ID:** [Evidence 13](evidence/13-incident-log.png) ghi `req-98640d6a`; event `response_sent`, latency 3492 ms, retrieval thành công, feature `monitoring`.
@@ -83,6 +86,14 @@ Tests và dashboard validator đã chạy lại ngày 2026-10-04 trên commit s�
 - **Root cause:** độ trễ retrieval/RAG chiếm khoảng 2.5 giây trong request, trong khi generation chỉ khoảng 0.16 giây; điều này giải thích P95 vượt ngưỡng 3000 ms. Kết luận khớp metrics, JSONL và span durations.
 - **Fix action:** tắt injected challenge incident sau workload; API xác nhận tất cả incidents ở trạng thái false.
 - **Preventive measure:** alert P95 >3000 ms trong 5 phút; dashboard 60 phút; tiếp tục nối metrics → correlation ID → retrieval span trước khi cân nhắc rollback/config change.
+
+### Lượt xác minh bổ sung (2026-10-04)
+
+- **Metrics và thời gian:** baseline 10 response lúc 08:42:57–08:42:58 UTC có P50 159 ms, P95 916 ms, TTFT P95 55 ms; challenge 5 response lúc 08:58:50–08:59:00 UTC có P50 2664 ms, P95 2665 ms, TTFT P95 55 ms, 0 lỗi, retrieval thành công 5/5 và tổng cost $0.01158. P95 tăng 1749 ms (~2.91 lần) so với baseline nhưng **không vượt** ngưỡng 3000 ms. Các số này lấy từ `response_sent` trong log, không lấy thời gian phía client.
+- **Log cùng request:** `req-8bdb3aa3`, session `k4-l3b-challenge-s05`, event `response_sent` lúc 08:59:00.899793 UTC, `latency_ms=2665`, `tool_success=true`.
+- **Trace cùng request:** Langfuse trace `f28b5d65e188b5794dca3a1ad98ed1f2` có metadata `correlation_id=req-8bdb3aa3`; root `lab-agent-run` 2.67 s, child `retrieval` 2.51 s, `llm-generation` 0.16 s. Retrieval chiếm phần lớn độ trễ, phù hợp metric và log.
+- **Kết luận và xử lý:** challenge `rag_slow` làm retrieval chậm so với baseline; response vẫn thành công. Đã tắt incident lúc 09:27:48 UTC, có event `incident_disabled` trong log. Giữ cảnh báo latency, dùng correlation ID để kiểm tra retrieval span trước khi thay đổi prompt hoặc model.
+- Lượt này là kiểm chứng thêm; ảnh 12–14 vẫn thuộc **lượt chính ngày 2026-10-02**, không được dùng chúng để chứng minh các ID của lượt 2026-10-04.
 
 ## 8. Giải thích và tự đánh giá
 
